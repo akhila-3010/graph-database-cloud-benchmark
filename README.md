@@ -660,7 +660,7 @@ Possible improvements:
 
 Akhila Chinta
 
-Developed as part of the **Graph Database Cloud Benchmarking Take-Home Assignment.**.
+Developed as part of the **Graph Database Cloud Benchmarking Take-Home Assignment.**
 
 ---
 
