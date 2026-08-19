@@ -1,713 +1,639 @@
 # Graph Database Cloud Benchmarking System
 
-A reproducible benchmarking system for comparing **CognoDB Cloud** with other managed or equivalently constrained graph database platforms using the **same dataset, workloads, client environment, and measurement methodology**.
 
-The goal of this project is not to declare a universal winner. The goal is to produce a **fair, reproducible, and honest comparison** of graph database performance under clearly documented resource constraints.
+A full-stack benchmarking platform designed to perform a **fair, reproducible, and transparent comparison of CognoDB Cloud with other graph database platforms** using the same dataset, equivalent resources, logical workloads, and measurement methodology.
+
+
+The project was developed for the **WEXA AI Graph Database Cloud Benchmarking take-home assignment**.
+
+
+The primary goal is not to declare a universal winner. Instead, the system measures and reports how different graph database platforms behave under comparable conditions.
+
 
 ---
 
-## 📌 Assignment
 
-This project was developed for the **WEXA AI — Graph Database Cloud Benchmarking** take-home assignment.
+## 🎯 Project Objective
+
+
+Graph databases are optimized for highly connected data and relationship-based queries.
+
+
+This project provides an automated benchmark system for evaluating graph database performance across multiple workload categories.
+
 
 The benchmark evaluates:
 
-* Data ingestion throughput
-* 1-hop, 2-hop, and 3-hop graph traversal latency
-* Point lookups
-* Indexed/filtered lookups
-* Aggregation queries
-* Concurrent mixed read/write workloads
-* Observable resource footprint
-* Warm and measured query performance
+
+- Data ingestion throughput
+- 1-hop graph traversal latency
+- 2-hop graph traversal latency
+- 3-hop graph traversal latency
+- Point lookup latency
+- Indexed/filtered lookup latency
+- Aggregation query latency
+- Concurrent read/write throughput
+- Observable resource footprint
+
+
+The benchmark emphasizes:
+
+
+- Fairness
+- Reproducibility
+- Automation
+- Statistical measurement
+- Transparent reporting
+- Honest documentation of limitations
+
 
 ---
 
-# 🎯 Objectives
-
-The benchmark follows these principles:
-
-1. Use the **same dataset** on every database.
-2. Execute the **same logical workloads** wherever the query language/features allow.
-3. Use comparable compute and storage resources.
-4. Run all benchmarks from the same client environment.
-5. Warm up each database before collecting measurements.
-6. Run repeated iterations rather than relying on a single query.
-7. Report **p50 and p95 latency**, not only averages.
-8. Preserve raw benchmark results for reproducibility.
-9. Document provider-specific limitations and differences.
-10. Avoid selectively hiding failed runs, timeouts, or platform limitations.
-
----
 
 # 🏗️ System Architecture
 
+
 ```text
-                         ┌─────────────────────┐
-                         │   Benchmark Runner  │
-                         └──────────┬──────────┘
-                                    │
-             ┌──────────────────────┼──────────────────────┐
-             │                      │                      │
-             ▼                      ▼                      ▼
-      Dataset Loader          Workload Engine        Metrics Engine
-             │                      │                      │
-             └──────────────────────┼──────────────────────┘
-                                    │
-        ┌───────────────┬───────────┼───────────┬───────────────┐
-        ▼               ▼           ▼           ▼               ▼
-    CognoDB           Neo4j      Memgraph    FalkorDB      Database 5
-        │               │           │           │               │
-        └───────────────┴───────────┼───────────┴───────────────┘
-                                    ▼
-                         Raw Results: JSON / CSV
-                                    │
-                                    ▼
-                           Results Processing
-                                    │
-                                    ▼
-                             Charts / Reports
-```
+                         User
+                           |
+                           v
+                   React Frontend
+                           |
+                           v
+                     REST API
+                           |
+                           v
+                  Spring Boot Backend
+                           |
+          +----------------+----------------+
+          |                |                |
+          v                v                v
+    Dataset Loader   Benchmark Engine   Report Engine
+          |                |                |
+          +----------------+----------------+
+                           |
+                           v
+                  Graph DB Connectors
+                           |
+       +-------------------+-------------------+
+       |                   |                   |
+       v                   v                   v
+   CognoDB Cloud         Neo4j             Memgraph
+       |
+       +-------------------+
+       |
+       v
+     FalkorDB
 
----
+The system separates database connectivity, dataset loading, benchmark execution, metric calculation, and reporting so that additional graph database platforms can be added without changing the benchmark methodology.
 
-# 🛠️ Technology Stack
+🛠️ Technology Stack
+Frontend
+Technology	Purpose
+React.js	User interface
+React Router	Application navigation
+Axios	REST API communication
+Vite	Frontend development and build
+CSS / Tailwind CSS	User interface styling
+Backend
+Technology	Purpose
+Java 17	Application development
+Spring Boot	REST API and backend services
+Maven	Dependency and build management
+Neo4j Java Driver	Bolt-based graph database communication
+Cypher / OpenCypher	Graph query workloads
+JUnit	Automated testing
+Data and Benchmarking
+Technology	Purpose
+CSV	Dataset input
+JSON	Benchmark result storage
+Java timing APIs	Latency measurement
+Python	Optional result analysis and visualization
+🗄️ Database Platforms
 
-## Backend
+The benchmark is designed to compare CognoDB Cloud with at least four graph database platforms.
 
-| Technology        | Purpose                              |
-| ----------------- | ------------------------------------ |
-| Java 17           | Application language                 |
-| Spring Boot       | REST API and benchmark orchestration |
-| Maven             | Dependency/build management          |
-| Neo4j Java Driver | Bolt/Cypher communication            |
-| OpenCypher/Cypher | Graph query workloads                |
-| JUnit             | Automated testing                    |
+The current connector architecture supports:
 
-## Frontend
+CognoDB Cloud
+Neo4j
+Memgraph
+FalkorDB
 
-| Technology         | Purpose                    |
-| ------------------ | -------------------------- |
-| React.js           | Benchmark interface        |
-| Vite               | Frontend development/build |
-| Axios              | API communication          |
-| Tailwind CSS / CSS | Interface styling          |
+Additional graph database connectors can be added through the common connector interface.
 
-## Benchmarking
+The final benchmark should only report a database as tested after it has actually been deployed, loaded with the benchmark dataset, and measured.
 
-| Technology              | Purpose                                    |
-| ----------------------- | ------------------------------------------ |
-| Java timing APIs        | Latency measurement                        |
-| CSV                     | Dataset/results interchange                |
-| JSON                    | Raw benchmark results                      |
-| Python / plotting tools | Optional result analysis and visualization |
+⚖️ Fairness Methodology
 
----
+Fairness is a core requirement of this project.
 
-# 🗄️ Databases Tested
+Every database should be tested using comparable conditions.
 
-The benchmark is designed to compare the following platforms:
+The benchmark follows these rules:
 
-| Database       | Deployment                          | Role                     |
-| -------------- | ----------------------------------- | ------------------------ |
-| CognoDB Cloud  | Managed cloud                       | Primary benchmark target |
-| Neo4j          | Managed/self-hosted equivalent tier | Comparison               |
-| Memgraph       | Managed/self-hosted equivalent tier | Comparison               |
-| FalkorDB       | Managed/self-hosted equivalent tier | Comparison               |
-| `<DATABASE_5>` | `<DEPLOYMENT>`                      | Comparison               |
+Same Dataset
 
-> **Important:** Exact instance specifications and deployment configurations used for the final experiment are documented in the Environment section below.
+Every database receives the same:
 
----
+Nodes
+Relationships
+Properties
+Dataset sample
+Same Logical Workloads
 
-# ⚖️ Fairness and Resource Methodology
+Every database executes equivalent:
 
-Exact hardware parity between different cloud providers is not always possible because providers expose different instance models and resource controls.
+Traversal workloads
+Lookup workloads
+Aggregation workloads
+Mixed read/write workloads
 
-Therefore, this benchmark uses the following strategy:
+If query syntax differs between platforms, the implementation is adapted while preserving the same logical operation.
 
-* Prefer free or entry-level configurations.
-* Use equivalent CPU limits where possible.
-* Use equivalent memory limits where possible.
-* Keep storage within the smallest practical common limit.
-* Use the same dataset for all platforms.
-* Use the same client machine for all experiments.
-* Use the same client-side benchmark code.
-* Use the same geographic region or the closest available region.
-* Document every difference between providers.
+Comparable Resources
 
-### Resource Configuration
+The benchmark uses free or entry-level configurations where possible.
 
-| Database       |       CPU |       RAM |   Storage | Region     | Deployment | Cost |
-| -------------- | --------: | --------: | --------: | ---------- | ---------- | ---- |
-| CognoDB        | `<VALUE>` | `<VALUE>` | `<VALUE>` | `<REGION>` | Cloud      | Free |
-| Neo4j          | `<VALUE>` | `<VALUE>` | `<VALUE>` | `<REGION>` | `<TYPE>`   | Free |
-| Memgraph       | `<VALUE>` | `<VALUE>` | `<VALUE>` | `<REGION>` | `<TYPE>`   | Free |
-| FalkorDB       | `<VALUE>` | `<VALUE>` | `<VALUE>` | `<REGION>` | `<TYPE>`   | Free |
-| `<DATABASE_5>` | `<VALUE>` | `<VALUE>` | `<VALUE>` | `<REGION>` | `<TYPE>`   | Free |
+The target is to maintain comparable:
 
-### Resource Parity Caveat
+vCPU
+RAM
+Storage
+Region
 
-Perfect hardware parity cannot be guaranteed across independent cloud providers.
+CognoDB's free C0 tier is intentionally small, so the dataset must remain small enough to fit within the smallest tested configuration.
 
-Any deviation from the target resource configuration is recorded rather than hidden.
+Any unavoidable resource difference is documented rather than hidden.
 
----
+Same Client Environment
 
-# 📊 Dataset
+All databases are benchmarked from the same client environment.
 
-## Dataset Used
+The benchmark records:
 
-**SNAP Pokec Social Network Dataset**
+Client operating system
+CPU
+RAM
+Java version
+Network environment
+Client region
+Benchmark date
+📊 Dataset
+
+The benchmark uses a public graph dataset containing at least 100,000 relationships.
+
+The planned dataset is based on the:
+
+SNAP Pokec Social Network Dataset
 
 Source:
 
-* SNAP — Stanford Network Analysis Project
-* Dataset: Pokec social network
+Stanford Network Analysis Project (SNAP)
 
-Dataset source:
+The dataset is converted into a graph representation containing nodes and relationships.
 
-`<INSERT OFFICIAL DATASET URL>`
+The benchmark records the exact:
 
-### Dataset Size Used
+Dataset source
+Dataset version
+Number of nodes
+Number of relationships
+Sampling method
+Preprocessing steps
 
-| Property          |                 Value |
-| ----------------- | --------------------: |
-| Nodes             |      `<ACTUAL COUNT>` |
-| Relationships     |      `<ACTUAL COUNT>` |
-| Dataset sample    |       `<DESCRIPTION>` |
-| File format       |                   CSV |
-| Node type         |           Person/User |
-| Relationship type | `<RELATIONSHIP TYPE>` |
+The identical processed dataset is loaded into every database.
 
-The benchmark uses a dataset containing at least **100,000 relationships**, as required by the assignment.
+📥 Dataset Loading
 
-The exact dataset sample and preprocessing steps are documented so that another user can reproduce the same dataset.
+The dataset loading pipeline follows:
 
----
+Public Dataset
+      |
+      v
+Dataset Validation
+      |
+      v
+Data Preprocessing
+      |
+      v
+Node Preparation
+      |
+      v
+Relationship Preparation
+      |
+      v
+Database Connection
+      |
+      v
+Batch Loading
+      |
+      v
+Node / Relationship Verification
+      |
+      v
+Benchmark Ready
 
-# 📥 Dataset Loading
+The loading benchmark measures:
 
-The same logical dataset is loaded into every database.
+Total wall-clock loading time
+Nodes loaded
+Relationships loaded
+Nodes per second
+Relationships per second
+Loading errors
 
-The loading process consists of:
+The loading mechanism used for each database is documented.
 
-```text
-Download dataset
-      ↓
-Validate dataset
-      ↓
-Prepare node data
-      ↓
-Prepare relationship data
-      ↓
-Connect to database
-      ↓
-Batch insert nodes
-      ↓
-Batch insert relationships
-      ↓
-Verify node count
-      ↓
-Verify relationship count
-```
+Where driver-based batching is used, the batch size and loading strategy are recorded.
 
-### Loading Method
+🔥 Benchmark Workloads
 
-Where supported, the benchmark uses batched driver operations.
+The benchmark consists of several workload categories required by the assignment.
 
-For every database, the README records:
+1. Data Ingestion Benchmark
 
-* Loading mechanism
-* Batch size
-* Number of nodes loaded
-* Number of relationships loaded
-* Total load duration
-* Nodes/second
-* Relationships/second
-* Errors or failed batches
+The ingestion benchmark measures how quickly the database can load the benchmark dataset.
 
----
+Metrics
+Total wall-clock load time
+Nodes/second
+Relationships/second
+Formulas
+Nodes/second =
+Total nodes / Total load time
 
-# 🔥 Benchmark Workloads
 
-Each database is tested using the same logical workload categories.
+Relationships/second =
+Total relationships / Total load time
+2. Graph Traversal Benchmark
 
----
+The traversal benchmark evaluates graph navigation at different depths.
 
-## 1. Data Ingestion
+The required workloads are:
 
-Measures:
+1-hop traversal
+2-hop traversal
+3-hop traversal
 
-* Total load time
-* Nodes/second
-* Relationships/second
+A start node is selected from the dataset and the benchmark measures the time required to traverse the graph.
 
-### Formula
+Example logical query:
 
-```text
-Nodes/sec =
-Number of nodes / Total load time
-
-Relationships/sec =
-Number of relationships / Total load time
-```
-
-### Results
-
-| Database       |  Nodes/sec | Relationships/sec | Total Load Time |
-| -------------- | ---------: | ----------------: | --------------: |
-| CognoDB        | `<RESULT>` |        `<RESULT>` |      `<RESULT>` |
-| Neo4j          | `<RESULT>` |        `<RESULT>` |      `<RESULT>` |
-| Memgraph       | `<RESULT>` |        `<RESULT>` |      `<RESULT>` |
-| FalkorDB       | `<RESULT>` |        `<RESULT>` |      `<RESULT>` |
-| `<DATABASE_5>` | `<RESULT>` |        `<RESULT>` |      `<RESULT>` |
-
----
-
-# 2. Graph Traversal Benchmark
-
-Three traversal depths are measured:
-
-* 1-hop
-* 2-hop
-* 3-hop
-
-Start nodes are selected from the dataset.
-
-The same logical traversal is executed on each database.
-
-### Example 1-hop
-
-```cypher
-MATCH (a)-[r]->(b)
+MATCH (a)-[*1]->(b)
 WHERE a.id = $id
 RETURN b
-```
 
-### Example 2-hop
+2-hop:
 
-```cypher
 MATCH (a)-[*2]->(b)
 WHERE a.id = $id
 RETURN b
-```
 
-### Example 3-hop
+3-hop:
 
-```cypher
 MATCH (a)-[*3]->(b)
 WHERE a.id = $id
 RETURN b
-```
 
-> Query syntax may differ between platforms. When syntax differs, the benchmark preserves the same logical operation and documents the implementation difference.
+The exact syntax may differ between databases.
 
----
+The benchmark preserves the same logical operation across platforms.
 
-## Traversal Results
+Metrics
+p50 latency
+p95 latency
+Successful requests
+Failed requests
+Timeouts
+3. Point Lookup Benchmark
 
-| Database       |  1-hop p50 |  1-hop p95 |  2-hop p50 |  2-hop p95 |  3-hop p50 |  3-hop p95 |
-| -------------- | ---------: | ---------: | ---------: | ---------: | ---------: | ---------: |
-| CognoDB        | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Neo4j          | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Memgraph       | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| FalkorDB       | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| `<DATABASE_5>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-
-All latency values are reported in milliseconds.
-
----
-
-# 3. Point Lookup
-
-A point lookup retrieves a node using a unique identifier.
+The point lookup benchmark retrieves a node using a unique identifier.
 
 Example:
 
-```cypher
 MATCH (n:Person {id: $id})
 RETURN n
-```
-
-### Measurements
-
-* p50 latency
-* p95 latency
-* Number of successful requests
-* Number of failures
-
-### Results
-
-| Database       |   p50 (ms) |   p95 (ms) |     Errors |
-| -------------- | ---------: | ---------: | ---------: |
-| CognoDB        | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Neo4j          | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Memgraph       | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| FalkorDB       | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| `<DATABASE_5>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-
----
-
-# 4. Indexed / Filtered Lookup
-
-An indexed or filtered property lookup is performed using a property available in the dataset.
-
-Example:
-
-```cypher
-MATCH (n:Person)
-WHERE n.<PROPERTY> = $value
-RETURN n
-```
-
-### Index Configuration
-
-| Database       | Indexed Property | Index Type | Notes     |
-| -------------- | ---------------- | ---------- | --------- |
-| CognoDB        | `<PROPERTY>`     | `<TYPE>`   | `<NOTES>` |
-| Neo4j          | `<PROPERTY>`     | `<TYPE>`   | `<NOTES>` |
-| Memgraph       | `<PROPERTY>`     | `<TYPE>`   | `<NOTES>` |
-| FalkorDB       | `<PROPERTY>`     | `<TYPE>`   | `<NOTES>` |
-| `<DATABASE_5>` | `<PROPERTY>`     | `<TYPE>`   | `<NOTES>` |
-
-### Results
-
-| Database       |   p50 (ms) |   p95 (ms) |     Errors |
-| -------------- | ---------: | ---------: | ---------: |
-| CognoDB        | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Neo4j          | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Memgraph       | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| FalkorDB       | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| `<DATABASE_5>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-
----
-
-# 5. Aggregation Benchmark
-
-The aggregation workload measures operations over graph data.
-
-Example:
-
-```cypher
-MATCH (n:Person)
-RETURN count(n)
-```
-
-Where supported, a grouping workload is also used:
-
-```cypher
-MATCH (n:Person)
-RETURN n.<PROPERTY>, count(*) AS total
-ORDER BY total DESC
-```
-
-### Results
-
-| Database       |   p50 (ms) |   p95 (ms) |     Errors |
-| -------------- | ---------: | ---------: | ---------: |
-| CognoDB        | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Neo4j          | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Memgraph       | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| FalkorDB       | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| `<DATABASE_5>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-
----
-
-# 6. Mixed Read/Write Workload
-
-The mixed workload simulates concurrent application traffic.
-
-Example workload mix:
-
-```text
-70% reads
-30% writes
-```
 
 The benchmark measures:
 
-* Queries per second
-* p50 latency
-* p95 latency
-* Successful operations
-* Failed operations
-* Timeouts
+p50 latency
+p95 latency
+Successful requests
+Failed requests
+Timeout count
+4. Indexed / Filtered Lookup Benchmark
 
-## Concurrency Sweep
-
-The benchmark is run at:
-
-```text
-1 client
-10 clients
-40 clients
-```
-
-### Results
-
-| Database       | Clients |        QPS |        p50 |        p95 |     Errors |
-| -------------- | ------: | ---------: | ---------: | ---------: | ---------: |
-| CognoDB        |       1 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| CognoDB        |      10 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| CognoDB        |      40 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Neo4j          |       1 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Neo4j          |      10 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Neo4j          |      40 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Memgraph       |       1 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Memgraph       |      10 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Memgraph       |      40 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| FalkorDB       |       1 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| FalkorDB       |      10 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| FalkorDB       |      40 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| `<DATABASE_5>` |       1 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| `<DATABASE_5>` |      10 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| `<DATABASE_5>` |      40 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-
----
-
-# 7. Resource Footprint
-
-Resource information is collected wherever the platform exposes it.
-
-The benchmark does not claim to measure resources that are not observable.
-
-| Database       | Instance Size |       CPU |       RAM |   Storage | Runtime Usage |
-| -------------- | ------------- | --------: | --------: | --------: | ------------- |
-| CognoDB        | `<VALUE>`     | `<VALUE>` | `<VALUE>` | `<VALUE>` | `<VALUE>`     |
-| Neo4j          | `<VALUE>`     | `<VALUE>` | `<VALUE>` | `<VALUE>` | `<VALUE>`     |
-| Memgraph       | `<VALUE>`     | `<VALUE>` | `<VALUE>` | `<VALUE>` | `<VALUE>`     |
-| FalkorDB       | `<VALUE>`     | `<VALUE>` | `<VALUE>` | `<VALUE>` | `<VALUE>`     |
-| `<DATABASE_5>` | `<VALUE>`     | `<VALUE>` | `<VALUE>` | `<VALUE>` | `<VALUE>`     |
-
-If a resource metric cannot be observed:
-
-```text
-Not observable through the provider's available interface.
-```
-
----
-
-# ⏱️ Measurement Methodology
-
-## Warm-up
-
-Each database is warmed up before measurements are collected.
-
-```text
-Connection
-    ↓
-Warm-up queries
-    ↓
-Discard warm-up measurements
-    ↓
-Measured workload
-```
-
-Warm-up iterations:
-
-```text
-<NUMBER>
-```
-
----
-
-## Measured Iterations
-
-Each read workload is executed for at least:
-
-```text
-100 iterations
-```
-
-The raw latency for every iteration is preserved.
-
----
-
-# 📐 Statistical Metrics
-
-The benchmark reports:
-
-### p50
-
-The median latency.
-
-Approximately 50% of requests complete at or below this value.
-
-### p95
-
-The latency below which approximately 95% of requests complete.
-
-p95 is particularly useful for identifying slower tail requests that are hidden by an average.
-
----
-
-# 🧪 Benchmark Environment
-
-All benchmark runs are performed using the same client environment.
-
-| Property       | Value           |
-| -------------- | --------------- |
-| Client OS      | `<OS>`          |
-| CPU            | `<CPU>`         |
-| RAM            | `<RAM>`         |
-| Java           | `<VERSION>`     |
-| Node.js        | `<VERSION>`     |
-| Maven          | `<VERSION>`     |
-| Client region  | `<REGION>`      |
-| Benchmark date | `<DATE>`        |
-| Network        | `<DESCRIPTION>` |
-
----
-
-# 🔄 Reproducibility
-
-The benchmark is designed so that another developer can reproduce the experiment.
-
-## Requirements
-
-Install:
-
-* Java 17+
-* Maven 3.9+
-* Node.js 18+
-* npm
-* Git
-
----
-
-# 🔐 Environment Variables
-
-Credentials are never committed to the repository.
-
-Create a local `.env` file.
+The indexed or filtered lookup benchmark evaluates property-based searches.
 
 Example:
 
-```env
-COGNODB_URI=
+MATCH (n:Person)
+WHERE n.property = $value
+RETURN n
+
+The benchmark records the indexing configuration used by each database.
+
+The following information is documented:
+
+Indexed property
+Index type
+Index availability
+Query implementation
+p50 latency
+p95 latency
+
+If an equivalent index is unavailable on a platform, the limitation is documented.
+
+5. Aggregation Benchmark
+
+The aggregation workload evaluates operations over graph data.
+
+Example:
+
+MATCH (n:Person)
+RETURN count(n)
+
+Where supported, a grouping workload can also be executed:
+
+MATCH (n:Person)
+RETURN n.property, count(*) AS total
+ORDER BY total DESC
+Metrics
+p50 latency
+p95 latency
+Successful operations
+Failed operations
+Timeouts
+6. Mixed Read/Write Workload
+
+The mixed workload evaluates database behavior under concurrent application-style traffic.
+
+The workload contains both read and write operations.
+
+The benchmark records:
+
+Sustained queries per second
+p50 latency
+p95 latency
+Successful operations
+Failed operations
+Timeouts
+
+The read/write ratio is recorded as part of the benchmark configuration.
+
+👥 Concurrency Testing
+
+The benchmark supports concurrency testing.
+
+The recommended concurrency sweep is:
+
+1 client
+10 clients
+40 clients
+
+This allows the benchmark to observe how database performance changes as concurrent workload increases.
+
+For each concurrency level, the benchmark records:
+
+Queries per second
+p50 latency
+p95 latency
+Error count
+Timeout count
+⏱️ Warm-up and Measurement
+
+Each database is warmed up before collecting measured results.
+
+The workflow is:
+
+Connect
+   |
+   v
+Warm-up Queries
+   |
+   v
+Discard Warm-up Measurements
+   |
+   v
+Measured Workload
+   |
+   v
+Calculate Statistics
+
+The assignment recommends at least 100 iterations per read workload after warm-up.
+
+The benchmark therefore supports repeated iterations and preserves the individual measurements.
+
+Warm-up results are excluded from the final latency statistics.
+
+📐 Statistical Measurements
+
+The benchmark reports percentile-based latency rather than relying only on averages.
+
+p50
+
+p50 represents the median latency.
+
+Approximately half of the measured requests complete at or below this value.
+
+p95
+
+p95 represents the latency below which approximately 95% of requests complete.
+
+p95 is useful for identifying slower tail requests that may not be visible from an average alone.
+
+📈 Required Metrics
+
+The benchmark collects the following metrics.
+
+Category	Metrics
+Data Loading	Load time, nodes/sec, relationships/sec
+Traversals	1-hop p50/p95, 2-hop p50/p95, 3-hop p50/p95
+Lookups	Point lookup p50/p95, indexed lookup p50/p95
+Aggregations	Aggregation p50/p95
+Mixed Workload	Sustained QPS, p50, p95, errors
+Footprint	Storage, memory, CPU, instance specifications where observable
+🖥️ Benchmark Environment
+
+All databases are tested from the same client environment.
+
+The benchmark records:
+
+Operating System
+CPU
+RAM
+Java Version
+Maven Version
+Node.js Version
+Network Environment
+Client Region
+Benchmark Date
+
+For every database, the benchmark records:
+
+Provider
+Deployment Type
+Instance Tier
+CPU
+RAM
+Storage
+Region
+Free-tier limitations
+
+This information is used to evaluate the fairness of the comparison.
+
+🔐 Environment Configuration
+
+Database credentials must never be committed to GitHub.
+
+Credentials are loaded using environment variables.
+
+Example:
+
+COGNODB_URI=bolt+s://your-instance.databases.cognodb.cloud
 COGNODB_USERNAME=cognodb
-COGNODB_PASSWORD=
+COGNODB_PASSWORD=your_password
+
 
 NEO4J_URI=
 NEO4J_USERNAME=
 NEO4J_PASSWORD=
 
+
 MEMGRAPH_URI=
 MEMGRAPH_USERNAME=
 MEMGRAPH_PASSWORD=
+
 
 FALKORDB_URI=
 FALKORDB_USERNAME=
 FALKORDB_PASSWORD=
 
-DATABASE5_URI=
-DATABASE5_USERNAME=
-DATABASE5_PASSWORD=
-```
+Create a local .env file for development.
 
-Never commit:
+The .env file must remain in .gitignore.
 
-```text
-.env
-```
+A .env.example file can be committed with empty values.
 
----
+🚀 CognoDB Cloud Setup
 
-# 🚀 Running the Backend
+Create a CognoDB Cloud account and provision a free C0 instance.
 
-```bash
-cd backend
-```
+The connection details are provided by the CognoDB Cloud console.
 
-Build:
-
-```bash
-./mvnw clean install
-```
-
-Run:
-
-```bash
-./mvnw spring-boot:run
-```
-
-On Windows:
-
-```bash
-mvnw.cmd spring-boot:run
-```
-
-The backend runs on:
-
-```text
-http://localhost:8080
-```
-
----
-
-# 🚀 Running the Frontend
-
-```bash
-cd frontend
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Run:
-
-```bash
-npm run dev
-```
-
-The frontend runs on:
-
-```text
-http://localhost:5173
-```
-
----
-
-# ▶️ Running the Benchmark
-
-After configuring database credentials:
-
-```bash
-<INSERT BENCHMARK COMMAND>
-```
+The benchmark connects using the official Neo4j driver and the provided Bolt connection URI.
 
 Example:
 
-```bash
-<INSERT COMMAND>
-```
+bolt+s://<instance-id>.databases.cognodb.cloud
 
-The benchmark should:
+Credentials are read from environment variables and are never stored in source code.
 
-1. Validate database connections.
-2. Load the dataset.
-3. Verify node and relationship counts.
-4. Warm up the database.
-5. Execute workloads.
-6. Collect latency measurements.
-7. Calculate p50/p95.
-8. Execute concurrency tests.
-9. Save raw results.
-10. Generate processed reports.
+🚀 Running the Backend
+Requirements
 
----
+Install:
 
-# 📁 Project Structure
+Java 17+
+Maven 3.9+
+Git
 
-```text
+Verify the installations:
+
+java -version
+mvn -version
+git --version
+
+Navigate to the backend:
+
+cd backend
+
+Build:
+
+mvn clean install
+
+Run:
+
+mvn spring-boot:run
+
+The backend is available at:
+
+http://localhost:8080
+🚀 Running the Frontend
+Requirements
+
+Install:
+
+Node.js 18+
+npm
+
+Navigate to the frontend:
+
+cd frontend
+
+Install dependencies:
+
+npm install
+
+Start the development server:
+
+npm run dev
+
+The frontend is available at:
+
+http://localhost:5173
+🔗 API Modules
+Connection API
+
+Responsible for:
+
+Database connection
+Credential validation
+Connection verification
+Connection error handling
+Dataset API
+
+Responsible for:
+
+Dataset loading
+Dataset processing
+Dataset information
+Load verification
+Verification API
+
+Responsible for:
+
+Database health checks
+Node verification
+Relationship verification
+Query execution checks
+Benchmark API
+
+Responsible for:
+
+Benchmark execution
+Workload execution
+Latency collection
+Concurrency testing
+Report API
+
+Responsible for:
+
+Processing benchmark results
+Generating performance summaries
+Preparing benchmark reports
+📂 Project Structure
 Graph-Database-Cloud-Benchmarking-System/
 │
 ├── frontend/
-│   └── src/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   └── App.jsx
+│   │
+│   └── package.json
 │
 ├── backend/
 │   ├── src/
@@ -715,384 +641,373 @@ Graph-Database-Cloud-Benchmarking-System/
 │   │       └── java/
 │   │           └── com/
 │   │               └── graphbenchmark/
-│   │                   ├── benchmark/
-│   │                   ├── connector/
-│   │                   ├── config/
 │   │                   ├── controller/
+│   │                   ├── connector/
+│   │                   ├── benchmark/
+│   │                   ├── workload/
 │   │                   ├── dataset/
 │   │                   ├── metrics/
 │   │                   ├── report/
-│   │                   ├── service/
-│   │                   └── workload/
+│   │                   └── service/
 │   │
-│   ├── datasets/
-│   └── reports/
+│   ├── pom.xml
+│   └── README.md
+│
+├── data/
+│   └── dataset files
 │
 ├── results/
 │   ├── raw/
 │   ├── processed/
 │   └── charts/
 │
-├── api_docs/
+├── screenshots/
 │
 ├── .env.example
 ├── .gitignore
 └── README.md
-```
+📋 Benchmark Execution Flow
+Start Application
+       |
+       v
+Configure Database Credentials
+       |
+       v
+Connect to Database
+       |
+       v
+Load Identical Dataset
+       |
+       v
+Verify Nodes and Relationships
+       |
+       v
+Warm Up Database
+       |
+       v
+Run Ingestion Benchmark
+       |
+       v
+Run Traversal Workloads
+       |
+       v
+Run Lookup Workloads
+       |
+       v
+Run Aggregation Workloads
+       |
+       v
+Run Mixed Read/Write Workload
+       |
+       v
+Run Concurrency Tests
+       |
+       v
+Collect Metrics
+       |
+       v
+Calculate p50 / p95 / QPS
+       |
+       v
+Generate Results
+       |
+       v
+Generate Charts and Report
+📦 Benchmark Results
 
----
+Benchmark results are generated only after the workloads have actually been executed.
 
-# 📦 Raw Results
+The repository can contain:
 
-Raw benchmark measurements are preserved in machine-readable formats.
+results/
+├── raw/
+├── processed/
+└── charts/
 
-Example:
+Raw results are preserved in machine-readable formats such as:
 
-```json
-{
-  "database": "cognodb",
-  "workload": "two-hop",
-  "iterations": 100,
-  "p50_ms": 0,
-  "p95_ms": 0,
-  "errors": 0
-}
-```
+JSON
+CSV
 
-Raw results should not be manually edited after a benchmark run.
+This allows the reported statistics to be reproduced from the original measurements.
 
----
+No benchmark values are manually invented or entered into the README.
 
-# 📈 Visualizations
+📊 Results Reporting
 
-The benchmark produces charts for:
+The final report is intended to contain a comparison across all tested databases.
 
-* Data ingestion throughput
-* 1-hop latency
-* 2-hop latency
-* 3-hop latency
-* Point lookup latency
-* Indexed lookup latency
-* Aggregation latency
-* QPS versus concurrency
-* Error rates
+The report will cover:
 
-Charts are stored under:
+Ingestion throughput
+1-hop latency
+2-hop latency
+3-hop latency
+Point lookup latency
+Indexed lookup latency
+Aggregation latency
+Mixed workload throughput
+Concurrency behavior
+Observable resource footprint
 
-```text
-results/charts/
-```
+The results are interpreted together with:
 
----
+Instance specifications
+Dataset characteristics
+Query configuration
+Network conditions
+Free-tier limitations
+Failed runs
+Provider-specific differences
+🔍 Analysis Approach
 
-# 🔍 Analysis
+The benchmark does not select a winner before the experiment.
 
-The results should be interpreted as observations from the tested configurations rather than universal database rankings.
+The analysis focuses on explaining the observed results.
 
-## Example analysis structure
+Ingestion
 
-### Ingestion
+The analysis examines differences in:
 
-Describe which systems achieved the highest and lowest ingestion throughput and discuss possible reasons such as batching, transaction overhead, network latency, or provider throttling.
+Nodes/sec
+Relationships/sec
+Total loading time
 
-### Traversals
+Possible factors include batching, transaction overhead, network latency, and storage behavior.
 
-Compare how latency changes from:
+Traversals
 
-```text
+The analysis compares how latency changes between:
+
 1-hop → 2-hop → 3-hop
-```
+Lookups
 
-Discuss whether deeper traversals increase latency consistently across platforms.
+Point lookup performance is compared with indexed or filtered lookup performance.
 
-### Lookups
+Aggregations
 
-Compare point lookups with indexed/filtered lookups and explain how indexing affects performance.
+Aggregation results help evaluate how databases process operations across graph data.
 
-### Aggregations
+Mixed Workloads
 
-Discuss the performance of count/grouping operations and possible differences in query execution.
+The analysis examines how throughput and latency change as concurrency increases.
 
-### Mixed Workloads
+Overall Interpretation
 
-Compare throughput at:
+Results are specific to the tested:
 
-```text
-1 client
-10 clients
-40 clients
-```
+Dataset
+Workloads
+Resource configuration
+Database version
+Region
+Client environment
 
-Discuss how each platform behaves as concurrency increases.
+Therefore, the benchmark should not be interpreted as a universal ranking of graph databases.
 
-### Overall Interpretation
+⚠️ Limitations and Caveats
 
-The benchmark does not identify a universal winner.
+Cloud benchmarking has several unavoidable limitations.
 
-Results depend on:
+Resource Differences
 
-* Dataset characteristics
-* Instance resources
-* Query patterns
-* Index configuration
-* Concurrency
-* Network conditions
-* Provider limits
-* Storage implementation
-* Query engine behavior
+Different providers expose different CPU, RAM, storage, and service configurations.
 
----
+The benchmark documents these differences rather than pretending that perfect hardware parity exists.
 
-# ⚠️ Limitations and Caveats
+Network Variability
 
-The following limitations are considered when interpreting the results:
+Cloud database performance can be affected by:
 
-### Cloud resource differences
+Network latency
+Temporary congestion
+Internet routing
+Provider infrastructure
+Free-Tier Restrictions
 
-Cloud providers do not expose identical hardware configurations.
+Free or entry-level tiers may have:
 
-### Network variability
+CPU throttling
+Memory limits
+Connection limits
+Storage limits
+Throughput restrictions
+Automatic suspension
+Query Differences
 
-Database requests may experience network latency and temporary congestion.
+Graph database implementations may differ in Cypher or OpenCypher support.
 
-### Free-tier restrictions
+Where exact syntax differs, equivalent logical operations are used.
 
-Free or entry tiers may have:
+Resource Observability
 
-* CPU throttling
-* Memory limitations
-* Connection limits
-* Storage limits
-* Automatic suspension
-* Throughput restrictions
+Some providers expose detailed resource information while others expose limited information.
 
-### Query-language differences
+Metrics that cannot be observed are reported as:
 
-Some databases may implement Cypher/OpenCypher differently.
-
-Where exact syntax differs, equivalent logical workloads are used and the difference is documented.
-
-### Resource observability
-
-Some platforms expose detailed resource metrics while others do not.
-
-Unobservable values are reported as:
-
-```text
 Not observable
-```
 
 rather than estimated.
 
-### Benchmark scope
-
-The results represent the tested dataset, workloads, hardware configurations, and benchmark environment.
-
-They should not be interpreted as a universal ranking of graph databases.
-
----
-
-# ❌ Failed Runs and Anomalies
+❌ Failed Runs and Anomalies
 
 Failed runs are not silently removed.
 
-Each failed run should record:
+The benchmark records issues such as:
 
-| Database     | Workload     | Result | Reason     | Action     |
-| ------------ | ------------ | ------ | ---------- | ---------- |
-| `<DATABASE>` | `<WORKLOAD>` | Failed | `<REASON>` | `<ACTION>` |
+Connection failures
+Query failures
+Timeouts
+Provider throttling
+Dataset loading failures
+Resource exhaustion
+Temporary service interruptions
 
-Examples of documented anomalies:
+Documenting failed runs is part of maintaining an honest benchmark.
 
-* Connection timeout
-* Provider throttling
-* Query timeout
-* Temporary service interruption
-* Resource exhaustion
-* Dataset loading failure
+🧪 Testing
 
----
+Backend tests can be executed using:
 
-# 🧪 Testing
-
-Backend tests:
-
-```bash
 cd backend
-./mvnw test
-```
+mvn test
 
-Testing includes:
+Tests cover areas such as:
 
-* Connector tests
-* Dataset loading tests
-* Workload tests
-* Metric calculation tests
-* Controller tests
-* Error handling tests
+Controller functionality
+Service functionality
+Database connectors
+Dataset loading
+Benchmark logic
+Metric calculations
+Error handling
+📸 Screenshots
 
----
+The frontend provides interfaces for:
 
-# 🔐 Security
+Database connection
+Dataset configuration
+Graph verification
+Benchmark execution
+Benchmark results
+Performance reporting
 
-Never commit:
+Screenshots can be added to:
 
-```text
-Database passwords
-API keys
-Connection credentials
-Private tokens
-.env files
-```
-
-Credentials are loaded from environment variables.
+screenshots/
 
 Example:
 
-```text
+screenshots/
+├── dashboard.png
+├── connection.png
+├── dataset.png
+├── verification.png
+├── benchmark.png
+└── report.png
+🔮 Future Improvements
+
+Potential improvements include:
+
+Automated cloud instance provisioning
+Docker-based controlled benchmark environments
+Additional graph database connectors
+Automated benchmark scheduling
+CI/CD benchmark execution
+Cold-start benchmarking
+Longer-duration stress testing
+Statistical confidence intervals
+Historical benchmark comparison
+Automated performance regression detection
+More detailed visualization dashboards
+🔐 Security
+
+This repository does not contain:
+
+Database passwords
+API keys
+Private tokens
+Authentication credentials
+.env files
+
+All sensitive configuration is supplied through environment variables.
+
+Before pushing to GitHub, verify that:
+
 .env
-```
 
-is intentionally excluded through `.gitignore`.
+is included in .gitignore.
 
----
+📝 Reproducibility Checklist
 
-# 📝 Reproducibility Checklist
+Before considering a benchmark run complete:
 
-Before publishing benchmark results, verify:
+ Same dataset used for every database
+ Dataset source documented
+ Exact node count recorded
+ Exact relationship count recorded
+ Dataset preprocessing documented
+ Database resources documented
+ Database regions documented
+ Client environment documented
+ Index configuration documented
+ Warm-up completed
+ At least 100 measured read iterations
+ p50 calculated
+ p95 calculated
+ 1-hop benchmark completed
+ 2-hop benchmark completed
+ 3-hop benchmark completed
+ Point lookup completed
+ Indexed/filtered lookup completed
+ Aggregation benchmark completed
+ Mixed read/write workload completed
+ Concurrency testing completed
+ Raw results preserved
+ Failed runs documented
+ Timeouts documented
+ Provider limitations documented
+ No credentials committed
+📜 Assignment Alignment
 
-* [ ] Same dataset used for every database
-* [ ] Exact dataset size recorded
-* [ ] Dataset source documented
-* [ ] Database instance specifications recorded
-* [ ] Client environment recorded
-* [ ] Database regions recorded
-* [ ] Indexes documented
-* [ ] Warm-up performed
-* [ ] At least 100 measured read iterations
-* [ ] p50 calculated
-* [ ] p95 calculated
-* [ ] 1-hop tested
-* [ ] 2-hop tested
-* [ ] 3-hop tested
-* [ ] Point lookup tested
-* [ ] Indexed lookup tested
-* [ ] Aggregation tested
-* [ ] Mixed workload tested
-* [ ] 1-client workload tested
-* [ ] 10-client workload tested
-* [ ] 40-client workload tested
-* [ ] Raw results preserved
-* [ ] Failed runs documented
-* [ ] Provider limitations documented
-* [ ] No credentials committed
+This project is designed around the requirements of the WEXA AI Graph Database Cloud Benchmarking assignment.
 
----
+The implementation addresses the major evaluation areas:
 
-# 📊 Final Results Summary
+Methodology & Fairness
 
-Replace the placeholders below only after completing the benchmark.
+Same dataset, equivalent logical workloads, comparable resources, warm-up, repeated measurements, and documented caveats.
 
-| Metric             |    CognoDB |      Neo4j |   Memgraph |   FalkorDB | Database 5 |
-| ------------------ | ---------: | ---------: | ---------: | ---------: | ---------: |
-| Load time          | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Nodes/sec          | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Relationships/sec  | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| 1-hop p50          | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| 1-hop p95          | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| 2-hop p50          | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| 2-hop p95          | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| 3-hop p50          | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| 3-hop p95          | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Point lookup p50   | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Point lookup p95   | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Indexed lookup p50 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Indexed lookup p95 | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Aggregation p50    | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Aggregation p95    | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
-| Mixed workload QPS | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` | `<RESULT>` |
+Completeness
 
----
+The benchmark covers ingestion, traversal, lookup, aggregation, mixed workload, and observable footprint metrics.
 
-# 💡 Key Findings
+Reproducibility
 
-After the final benchmark is completed, summarize the main findings here.
+Benchmark execution is automated through the backend and raw measurements can be preserved for verification.
 
-### Finding 1
+README & Analysis
 
-`<Describe the most important measured observation.>`
+The project documents its architecture, methodology, dataset, workload design, execution process, limitations, and analysis approach.
 
-### Finding 2
+Communication
 
-`<Describe a notable traversal/lookup/aggregation result.>`
+The frontend and reporting components are designed to make benchmark execution and results easier to understand.
 
-### Finding 3
+👨‍💻 Author
 
-`<Describe how performance changed with concurrency.>`
+Akhila Chinta
 
-### Finding 4
+Developed as part of the WEXA AI Graph Database Cloud Benchmarking Take-Home Assignment.
 
-`<Describe any major provider limitation or anomaly.>`
+📜 License
 
----
+This project is created for educational and technical evaluation purposes.
 
-# 🧭 What the Results Do and Do Not Show
+⭐ Final Note
 
-## The benchmark shows
+The purpose of this project is to produce a fair and reproducible graph database benchmark, not to manufacture a preferred result.
 
-* Relative performance under the tested configuration.
-* Behavior of graph traversals at different depths.
-* Lookup and aggregation performance.
-* Ingestion throughput.
-* Behavior under concurrent mixed workloads.
-* Observable resource characteristics.
+Performance results should always be interpreted together with the tested resources, dataset, workloads, environment, and provider limitations.
 
-## The benchmark does not show
-
-* Universal database superiority.
-* Performance for every possible graph workload.
-* Performance on every hardware configuration.
-* Long-term production reliability.
-* Performance at very large graph sizes beyond the tested dataset.
-
----
-
-# 🚀 Future Improvements
-
-Possible extensions include:
-
-* Automated cloud instance provisioning
-* Docker-based reproducible environments
-* Additional graph databases
-* Larger datasets
-* More workload types
-* Automated CI benchmark runs
-* Cold-start benchmarking
-* Longer-duration stress tests
-* Statistical confidence intervals
-* Automated regression detection
-* Public benchmark result history
-
----
-
-# 👨‍💻 Author
-
-**Akhila Chinta**
-
-This project was developed for technical evaluation and benchmarking research.
-
----
-
-# 📜 License
-
-This project is provided for educational and technical evaluation purposes.
-
----
-
-# ⭐ Final Note
-
-Benchmark results are presented with an emphasis on **reproducibility, fairness, and transparency**.
-
-If a platform performs poorly, fails a workload, exposes fewer resource metrics, or has a provider-specific limitation, the result is documented rather than removed.
-
-The objective is to understand the observed behavior — not to manufacture a winner.
+Any failed benchmark, timeout, resource limitation, or platform-specific behavior should be reported transparently rather than removed from the final analysis.
