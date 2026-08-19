@@ -659,6 +659,7 @@ Possible improvements:
 # 👨‍💻 Author
 
 Akhila Chinta
+
 Developed as part of the **Graph Database Cloud Benchmarking Take-Home Assignment.**.
 
 ---
