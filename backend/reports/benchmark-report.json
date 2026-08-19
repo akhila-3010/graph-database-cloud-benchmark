@@ -1,0 +1,53 @@
+{
+  "databaseName" : "CognoDB",
+  "generatedTime" : [ 2026, 8, 6, 20, 44, 8, 168402100 ],
+  "benchmarks" : [ {
+    "benchmarkName" : "1-Hop Traversal",
+    "averageLatency" : 1329.59082,
+    "minLatency" : 1167.4346,
+    "maxLatency" : 1852.7425,
+    "p50Latency" : 1204.7306,
+    "p95Latency" : 1852.7425,
+    "throughput" : 0.7521046973059882
+  }, {
+    "benchmarkName" : "2-Hop Traversal",
+    "averageLatency" : 1332.8382,
+    "minLatency" : 1223.6355,
+    "maxLatency" : 1560.3853,
+    "p50Latency" : 1243.6336,
+    "p95Latency" : 1560.3853,
+    "throughput" : 0.7502704312255831
+  }, {
+    "benchmarkName" : "3-Hop Traversal",
+    "averageLatency" : 1332.60014,
+    "minLatency" : 1124.8862,
+    "maxLatency" : 1568.7387,
+    "p50Latency" : 1368.6668,
+    "p95Latency" : 1568.7387,
+    "throughput" : 0.7504064201171355
+  }, {
+    "benchmarkName" : "Point Lookup",
+    "averageLatency" : 1252.66452,
+    "minLatency" : 1179.7247,
+    "maxLatency" : 1359.0894,
+    "p50Latency" : 1251.0743,
+    "p95Latency" : 1359.0894,
+    "throughput" : 0.7982919362551755
+  }, {
+    "benchmarkName" : "Aggregation",
+    "averageLatency" : 548.77116,
+    "minLatency" : 513.075,
+    "maxLatency" : 591.8443,
+    "p50Latency" : 547.4021,
+    "p95Latency" : 591.8443,
+    "throughput" : 1.822202325392564
+  }, {
+    "benchmarkName" : "Mixed Workload",
+    "averageLatency" : 1102.23336,
+    "minLatency" : 488.3948,
+    "maxLatency" : 1502.2805,
+    "p50Latency" : 1169.22,
+    "p95Latency" : 1502.2805,
+    "throughput" : 0.9072330278111196
+  } ]
+}
